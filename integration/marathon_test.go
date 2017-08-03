@@ -28,7 +28,9 @@ func (s *MarathonSuite) SetUpSuite(c *check.C) {
 	s.createComposeProject(c, "marathon")
 	s.composeProject.Start(c)
 
-	s.marathonURL = "http://" + s.getContainerIPAddr(c, containerNameMarathon) + ":8080"
+	marathonIPAddr := s.composeProject.Container(c, containerNameMarathon).NetworkSettings.IPAddress
+	c.Assert(marathonIPAddr, checker.Not(checker.HasLen), 0)
+	s.marathonURL = "http://" + marathonIPAddr + ":8080"
 
 	// Wait for Marathon readiness prior to creating the client so that we
 	// don't run into the "all cluster members down" state right from the
@@ -42,14 +44,9 @@ func (s *MarathonSuite) SetUpSuite(c *check.C) {
 	// spec. Once we switch to v2 or higher, we can have both the test/builder
 	// container and the Mesos slave container join the same custom network and
 	// enjoy DNS-discoverable container host names.
-	mesosSlaveIPAddr := s.getContainerIPAddr(c, containerNameMesosSlave)
+	mesosSlaveIPAddr := s.composeProject.Container(c, containerNameMesosSlave).NetworkSettings.IPAddress
+	c.Assert(mesosSlaveIPAddr, checker.Not(checker.HasLen), 0)
 	c.Assert(s.extendDockerHostsFile(containerNameMesosSlave, mesosSlaveIPAddr), checker.IsNil)
-}
-
-func (s *MarathonSuite) getContainerIPAddr(c *check.C, name string) string {
-	ipAddr := s.composeProject.Container(c, name).NetworkSettings.IPAddress
-	c.Assert(ipAddr, checker.Not(checker.HasLen), 0)
-	return ipAddr
 }
 
 // extendDockerHostsFile extends the hosts file (/etc/hosts) by the given
