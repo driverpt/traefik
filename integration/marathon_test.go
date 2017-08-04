@@ -46,7 +46,8 @@ func (s *MarathonSuite) SetUpSuite(c *check.C) {
 	// enjoy DNS-discoverable container host names.
 	mesosSlaveIPAddr := s.composeProject.Container(c, containerNameMesosSlave).NetworkSettings.IPAddress
 	c.Assert(mesosSlaveIPAddr, checker.Not(checker.HasLen), 0)
-	c.Assert(s.extendDockerHostsFile(containerNameMesosSlave, mesosSlaveIPAddr), checker.IsNil)
+	err = s.extendDockerHostsFile(containerNameMesosSlave, mesosSlaveIPAddr)
+	c.Assert(err, checker.IsNil)
 }
 
 // extendDockerHostsFile extends the hosts file (/etc/hosts) by the given
